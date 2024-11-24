@@ -1,6 +1,6 @@
 const { Command } = require('commander');
 const express = require('express');
-const fs = require('fs');
+const noteRoute = require('./route/noteRoute');
 const path = require('path');
 
 const app = express();
@@ -13,7 +13,7 @@ program
 
 program.configureOutput({
     writeErr: (str) => {
-        console.error("Йосип босий! То ти шось пропустив'-h (--host), -p (--port), -c (--cache <path>)'");
+        console.error("Йосип босий! То ти шось пропустив '-h (--host), -p (--port), -c (--cache <path>)'");
         process.exit(1);
     }
 });
@@ -25,6 +25,19 @@ const host = options.host;
 const port = options.port;
 const cachePath = options.cache;
 
+// Middleware для передачі cachePath
+app.use((req, res, next) => {
+    req.cachePath = cachePath; 
+    next();
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.json());
+
+app.use('/notes', noteRoute);
+
+// Запуск сервера
 app.listen(port, host, () => {
     console.log(`Сервер стартанув: http://${host}:${port}/`);
-  });
+});
